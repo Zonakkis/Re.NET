@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Re.NET</RootNamespace>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ApplicationId>com.CompanyName.Re.NET</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AndroidResource Include="Icon.png">
+      <Link>Resources\drawable\Icon.png</Link>
+    </AndroidResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Android" />
+    <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
+    <!-- Direct references so the pinned versions win over the transitive requests. -->
+    <PackageReference Include="Xamarin.AndroidX.Core.Core.Ktx" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Re.NET\Re.NET.csproj" />
+  </ItemGroup>
+</Project>
