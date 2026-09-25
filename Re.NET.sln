@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Re.NET.Android", "Re.NET\Re
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{E1B2C952-D163-47D7-8531-6B5EBB584B1E}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		AGENTS.md = AGENTS.md
 		Re.NET\Directory.Packages.props = Re.NET\Directory.Packages.props
 	EndProjectSection
 EndProject
