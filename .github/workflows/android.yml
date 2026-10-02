@@ -1,0 +1,104 @@
+name: Android APK
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build arm64 APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+      ANDROID_SIGNING_STORE_PASS: android
+      ANDROID_SIGNING_KEY_PASS: android
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install .NET Android workload
+        run: dotnet workload install android
+
+      - name: Install Android SDK packages
+        run: >
+          dotnet build Re.NET/Re.NET.Android/Re.NET.Android.csproj
+          -t:InstallAndroidDependencies
+          -f net10.0-android
+          -p:AcceptAndroidSdkLicenses=True
+
+      - name: Create debug keystore
+        run: |
+          mkdir -p "$HOME/.android"
+          keystore="$HOME/.android/debug.keystore"
+          if [ ! -f "$keystore" ]; then
+            keytool -genkeypair -keystore "$keystore" \
+              -alias androiddebugkey \
+              -storepass android \
+              -keypass android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      - name: Publish APK
+        run: >
+          dotnet publish Re.NET/Re.NET.Android/Re.NET.Android.csproj
+          -c Release
+          -f net10.0-android
+          -r android-arm64
+          -p:AndroidPackageFormat=apk
+          -p:EmbedAssembliesIntoApk=true
+          -p:AndroidKeyStore=true
+          -p:AndroidSigningKeyStore=$HOME/.android/debug.keystore
+          -p:AndroidSigningKeyAlias=androiddebugkey
+          -p:AndroidSigningStorePass=env:ANDROID_SIGNING_STORE_PASS
+          -p:AndroidSigningKeyPass=env:ANDROID_SIGNING_KEY_PASS
+
+      - name: Collect APK
+        run: |
+          mkdir -p artifacts
+          echo "APK outputs:"
+          find Re.NET/Re.NET.Android/bin -name '*.apk' -print -exec ls -lh {} \;
+          apk="$(find Re.NET/Re.NET.Android/bin -iname '*signed*.apk' | head -n 1)"
+          if [ -z "$apk" ]; then
+            apk="$(find Re.NET/Re.NET.Android/bin -name '*.apk' | head -n 1)"
+          fi
+          if [ -z "$apk" ]; then
+            echo "No APK produced" >&2
+            exit 1
+          fi
+          cp "$apk" artifacts/Re.NET-arm64.apk
+          ls -lh artifacts/Re.NET-arm64.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Re.NET-android-arm64
+          path: artifacts/Re.NET-arm64.apk
+          if-no-files-found: error
+          retention-days: 14
